@@ -152,6 +152,7 @@ func (s *Session) RequestJSON(
 	params *url.Values,
 	headers *http.Header,
 	body interface{},
+	responseContainer interface{},
 ) (resp *http.Response, err error) {
 	var bodyjson []byte
 	if body != nil {
@@ -180,7 +181,9 @@ func (s *Session) RequestJSON(
 	if err != nil {
 		return resp, fmt.Errorf("error reading response body")
 	}
-
+	if err = json.Unmarshal(rbody, &responseContainer); err != nil {
+                return resp, err
+        }
 	return resp, nil
 }
 func (s *Session) Delete(
@@ -201,8 +204,9 @@ func (s *Session) GetJSON(
 	url string,
 	params *url.Values,
 	headers *http.Header,
+	responseContainer interface{},
 ) (resp *http.Response, err error) {
-	return s.RequestJSON("GET", url, params, headers, nil)
+	return s.RequestJSON("GET", url, params, headers, nil, responseContainer)
 }
 
 func (s *Session) Head(
@@ -230,8 +234,9 @@ func (s *Session) PostJSON(
 	params *url.Values,
 	headers *http.Header,
 	body interface{},
+	responseContainer interface{},
 ) (resp *http.Response, err error) {
-	return s.RequestJSON("POST", url, params, headers, body )
+	return s.RequestJSON("POST", url, params, headers, body, responseContainer )
 }
 
 func (s *Session) SetAPIToken(token string) {
@@ -243,7 +248,8 @@ func (s *Session) Login(username string, password string) (err error) {
 	//olddebug := *Debug
 	//*Debug = false // don't share passwords in debug log
 	reqbody := ParamsToBody(reqUser)
-	resp, err := s.PostJSON("/public/auth", &reqbody, nil, &reqbody)
+	//var data interface{}
+	resp, err := s.PostJSON("/public/auth", nil , nil, &reqbody, nil)
 	//*Debug = olddebug
 	if err != nil {
 		return err
@@ -266,10 +272,12 @@ func (s *Session) Login(username string, password string) (err error) {
 
 func ParamsToBody(params map[string]interface{}) (vals url.Values) {
 	vals = url.Values{}
+	log.Printf("%s", params["email"])
 	for k, intrV := range params {
 		var v string
-		v = fmt.Sprintf("%v", intrV)
+                v = fmt.Sprintf("%v", intrV)
 		vals.Set(k, v)
+		log.Printf("%s", vals["email"])
 	}
 	return
 }
