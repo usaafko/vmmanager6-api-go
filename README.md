@@ -1,0 +1,1 @@
+# vmmanager6-api-go
