@@ -77,10 +77,29 @@ func (c *Client) GetNodeList() (list map[string]interface{}, err error) {
 	return
 }
 func (c *Client) GetVmList() (list map[string]interface{}, err error) {
-	err = c.GetJsonRetryable("/cluster/resources?type=vm", &list, 3)
+	err = c.GetJsonRetryable("/host", &list, 3)
 	return
 }
 func (c *Client) DeleteUrl(url string) (err error) {
 	_, err = c.session.Delete(url, nil, nil)
 	return
 }
+func NewVmRef(vmId int) (vmr *VmRef) {
+        vmr = &VmRef{vmId: vmId}
+        return
+}
+
+func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error) {
+        resp, err := c.GetVmList()
+        vms := resp["data"].([]interface{})
+        for vmii := range vms {
+                vm := vms[vmii].(map[string]interface{})
+                if int(vm["vmid"].(float64)) == vmr.vmId {
+                        vmInfo = vm
+                        return
+                }
+        }
+        return nil, fmt.Errorf("vm '%d' not found", vmr.vmId)
+}
+
+
