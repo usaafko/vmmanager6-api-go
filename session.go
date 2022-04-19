@@ -177,13 +177,13 @@ func (s *Session) RequestJSON(
 	// 	return nil, err
 	// }
 
-	//rbody, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	return resp, fmt.Errorf("error reading response body")
-	//}
-	//if err = json.Unmarshal(rbody, &responseContainer); err != nil {
-        //        return resp, err
-        //}
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return resp, fmt.Errorf("error reading response body")
+	}
+	if err = json.Unmarshal(rbody, &responseContainer); err != nil {
+                return resp, err
+        }
 	return resp, nil
 }
 func (s *Session) Delete(
@@ -246,24 +246,17 @@ func (s *Session) SetAPIToken(token string) {
 func (s *Session) Login(username string, password string) (err error) {
 	reqUser := map[string]interface{}{"email": username, "password": password}
 	olddebug := *Debug
+	var data map[string]interface{}
 	*Debug = false // don't share passwords in debug log
-	resp, err := s.PostJSON("/public/auth", nil , nil, &reqUser, nil)
+	_, err = s.PostJSON("/public/auth", nil , nil, &reqUser, &data)
 	*Debug = olddebug
 	if err != nil {
 		return err
 	}
-	if resp == nil {
+	if data == nil {
 		return fmt.Errorf("Login error reading response")
 	}
-	dr, _ := httputil.DumpResponse(resp, true)
-	jbody, err := ResponseJSON(resp)
-	if err != nil {
-		return err
-	}
-	if jbody == nil || jbody["token"] == nil {
-		return fmt.Errorf("invalid login response:\n-----\n%s\n-----", dr)
-	}
-	s.AuthToken = jbody["token"].(string)
+	s.AuthToken = data["token"].(string)
 	return nil
 }
 

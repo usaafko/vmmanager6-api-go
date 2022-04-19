@@ -14,10 +14,13 @@ func TestClient_Login(t *testing.T) {
 	err = client.Login("admin@example.com", "oA4hX9rL")
 	assert.Nil(t, err)
 	resp, err := client.GetVmList()
+	log.Printf("%v", resp)
+	log.Printf("AAAAAAAAAAAAAAAAAAAAAAAAAAA %v", resp)
 	assert.Nil(t, err)
-	vms := resp["data"].([]interface{})
-	for vmii := range vms {
-		log.Printf("%v", vmii)
-	}
+	//vms := resp["data"].([]interface{})
+	//log.Printf("%v", vms)
+	//for vmii := range vms {
+	//	log.Printf("%v", vmii)
+	//}
 }
 
