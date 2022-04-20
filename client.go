@@ -1,12 +1,19 @@
 package vmmanager6
 
 import (
+	"encoding/json"
 	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
+	"io"
 	"time"
 )
+
+const exitStatusSuccess = "complete"
+
+// TaskStatusCheckInterval - time between async checks in seconds
+const TaskStatusCheckInterval = 2
 
 type Client struct {
 	session		*Session
@@ -113,4 +120,61 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
         }
         vmState = vm["state"].(string)
         return
+}
+
+func (c *Client) CreateQemuVm(vmParams map[string]interface{}) (exitStatus string, err error) {
+        var data map[string]interface{}
+        _, err = c.session.PostJSON("/host", nil, nil, &vmParams, &data)
+        if err != nil {
+                return "", err
+        }
+	if data == nil {
+		return "", fmt.Errorf("Can't create VM with params %v", vmParams)
+	}
+        exitStatus, err = c.WaitForCompletion(data)
+
+        return
+}
+
+func (c *Client) GetTaskExitstatus(taskUpid string) (exitStatus string, err error) {
+        url := fmt.Sprintf("vm/v3/task?where=consul_id+EQ+%s", taskUpid)
+        var data map[string]interface{}
+        _, err = c.session.GetJSON(url, nil, nil, &data)
+        if err == nil {
+		tasks := data["list"].([]interface{})
+		task := tasks[0].(map[string]interface{})
+                exitStatus = task["status"].(string)
+        }
+        if exitStatus != exitStatusSuccess {
+                err = fmt.Errorf(exitStatus)
+        }
+        return
+}
+
+// WaitForCompletion - poll the API for task completion
+func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (waitExitStatus string, err error) {
+        if taskResponse["error"] != nil {
+                errJSON, _ := json.MarshalIndent(taskResponse["error"], "", "  ")
+                return string(errJSON), fmt.Errorf("error reponse")
+        }
+        if taskResponse["task"] == nil {
+                return "", nil
+        }
+        waited := 0
+        taskUpid := taskResponse["task"].(string)
+        for waited < c.TaskTimeout {
+                exitStatus, statErr := c.GetTaskExitstatus(taskUpid)
+                if statErr != nil {
+                        if statErr != io.ErrUnexpectedEOF { // don't give up on ErrUnexpectedEOF
+                                return "", statErr
+                        }
+                }
+                if exitStatus != "" {
+                        waitExitStatus = exitStatus
+                        return
+                }
+                time.Sleep(TaskStatusCheckInterval * time.Second)
+                waited = waited + TaskStatusCheckInterval
+        }
+        return "", fmt.Errorf("Wait timeout for:" + taskUpid)
 }
