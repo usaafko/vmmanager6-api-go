@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"io"
 	"time"
 )
 
 const exitStatusSuccess = "complete"
 
 // TaskStatusCheckInterval - time between async checks in seconds
-const TaskStatusCheckInterval = 2
+const TaskStatusCheckInterval = 5
 
 type Client struct {
 	session		*Session
@@ -122,22 +121,22 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
         return
 }
 
-func (c *Client) CreateQemuVm(vmParams map[string]interface{}) (exitStatus string, err error) {
+func (c *Client) CreateQemuVm(vmParams map[string]interface{}) (vmid int, err error) {
         var data map[string]interface{}
         _, err = c.session.PostJSON("/host", nil, nil, &vmParams, &data)
         if err != nil {
-                return "", err
+                return 0, err
         }
 	if data == nil {
-		return "", fmt.Errorf("Can't create VM with params %v", vmParams)
+		return 0, fmt.Errorf("Can't create VM with params %v", vmParams)
 	}
-        exitStatus, err = c.WaitForCompletion(data)
-
+        err = c.WaitForCompletion(data)
+	vmid = int(data["id"].(float64))
         return
 }
 
-func (c *Client) GetTaskExitstatus(taskUpid string) (exitStatus string, err error) {
-        url := fmt.Sprintf("vm/v3/task?where=consul_id+EQ+%s", taskUpid)
+func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) {
+        url := fmt.Sprintf("/task?where=consul_id+EQ+%v", taskUpid)
         var data map[string]interface{}
         _, err = c.session.GetJSON(url, nil, nil, &data)
         if err == nil {
@@ -152,29 +151,23 @@ func (c *Client) GetTaskExitstatus(taskUpid string) (exitStatus string, err erro
 }
 
 // WaitForCompletion - poll the API for task completion
-func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (waitExitStatus string, err error) {
+func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (err error) {
         if taskResponse["error"] != nil {
                 errJSON, _ := json.MarshalIndent(taskResponse["error"], "", "  ")
-                return string(errJSON), fmt.Errorf("error reponse")
+		return fmt.Errorf("error reponse: %v", string(errJSON))
         }
         if taskResponse["task"] == nil {
-                return "", nil
+                return nil
         }
         waited := 0
-        taskUpid := taskResponse["task"].(string)
+        taskUpid := int(taskResponse["task"].(float64))
         for waited < c.TaskTimeout {
-                exitStatus, statErr := c.GetTaskExitstatus(taskUpid)
-                if statErr != nil {
-                        if statErr != io.ErrUnexpectedEOF { // don't give up on ErrUnexpectedEOF
-                                return "", statErr
-                        }
-                }
-                if exitStatus != "" {
-                        waitExitStatus = exitStatus
-                        return
+                _, statErr := c.GetTaskExitstatus(taskUpid)
+                if statErr == nil {
+                        return nil
                 }
                 time.Sleep(TaskStatusCheckInterval * time.Second)
                 waited = waited + TaskStatusCheckInterval
         }
-        return "", fmt.Errorf("Wait timeout for:" + taskUpid)
+        return fmt.Errorf("Wait timeout for: %v", taskUpid)
 }

@@ -15,7 +15,7 @@ type ConfigQemu struct {
 }
 
 // CreateVm - Tell VMmanager 6 API to make the VM
-func (config ConfigQemu) CreateVm(vmr *VmRef, client *Client) (err error) {
+func (config ConfigQemu) CreateVm(client *Client) (vmid int, err error) {
 	params := map[string]interface{}{
 		"name": config.Name,
 		"comment": config.Description,
@@ -29,10 +29,24 @@ func (config ConfigQemu) CreateVm(vmr *VmRef, client *Client) (err error) {
 		"os": 1,
 		"ipv4_number": 1,
 	}
-	exitStatus, err := client.CreateQemuVm(params)
-        if err != nil {
-                return fmt.Errorf("error creating VM: %v, error status: %s (params: %v)", err, exitStatus, params)
+	vmid, err = client.CreateQemuVm(params)
+	if err != nil {
+                return 0, fmt.Errorf("error creating VM: %v (params: %v)", err, params)
         }
 
+	return
+}
+
+func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err error) {
+        var vmConfig map[string]interface{}
+	vmConfig, err = client.GetVmInfo(vmr)
+	config = &ConfigQemu{
+		VmID:	vmr.vmId,
+		Description: vmConfig["comment"].(string),
+		Name: vmConfig["name"].(string),
+		QemuCores: vmConfig["cpu_number"].(int),
+		Memory: vmConfig["ram_mib"].(int),
+		QemuDisks: vmConfig["disk_mib"].(int),
+	}
 	return
 }
