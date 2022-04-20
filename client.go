@@ -91,10 +91,10 @@ func NewVmRef(vmId int) (vmr *VmRef) {
 
 func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error) {
         resp, err := c.GetVmList()
-        vms := resp["data"].([]interface{})
+        vms := resp["list"].([]interface{})
         for vmii := range vms {
                 vm := vms[vmii].(map[string]interface{})
-                if int(vm["vmid"].(float64)) == vmr.vmId {
+		if vm["id"].(int) == vmr.vmId {
                         vmInfo = vm
                         return
                 }
