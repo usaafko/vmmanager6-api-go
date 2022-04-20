@@ -3,8 +3,8 @@ package vmmanager6
 import (
 	"crypto/tls"
 	"testing"
-	"log"
 	"github.com/stretchr/testify/assert"
+	"log"
 )
 
 func TestClient_Login(t *testing.T) {
@@ -13,14 +13,10 @@ func TestClient_Login(t *testing.T) {
 	assert.Nil(t, err)
 	err = client.Login("admin@example.com", "oA4hX9rL")
 	assert.Nil(t, err)
-	resp, err := client.GetVmList()
-	log.Printf("%v", resp)
-	log.Printf("AAAAAAAAAAAAAAAAAAAAAAAAAAA %v", resp)
+	vm := &VmRef{vmId: 2}
+
+	resp, err := client.GetVmState(vm)
 	assert.Nil(t, err)
-	//vms := resp["data"].([]interface{})
-	//log.Printf("%v", vms)
-	//for vmii := range vms {
-	//	log.Printf("%v", vmii)
-	//}
+	log.Printf("%#v", resp)
 }
 
