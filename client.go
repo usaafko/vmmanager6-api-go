@@ -94,7 +94,7 @@ func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error
         vms := resp["list"].([]interface{})
         for vmii := range vms {
                 vm := vms[vmii].(map[string]interface{})
-		if vm["id"].(int) == vmr.vmId {
+		if int(vm["id"].(float64)) == vmr.vmId {
                         vmInfo = vm
                         return
                 }
@@ -102,4 +102,14 @@ func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error
         return nil, fmt.Errorf("vm '%d' not found", vmr.vmId)
 }
 
-
+func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
+	vm, err := c.GetVmInfo(vmr)
+        if err != nil {
+                return "", err
+        }
+        if vm["state"] == nil {
+		return "", fmt.Errorf("vm STATE not readable")
+        }
+        vmState = vm["state"].(string)
+        return
+}
