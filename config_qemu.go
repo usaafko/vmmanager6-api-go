@@ -22,6 +22,12 @@ func (config ConfigQemu) CreateVm(vmr *VmRef, client *Client) (err error) {
 		"ram_mib": config.Memory,
 		"hdd_mib": config.QemuDisks,
 		"cpu_number": config.QemuCores,
+		"cluster": 1,
+		"account": 3,
+		"domain": "fuck.me",
+		"password": "fuckingfuck",
+		"os": 1,
+		"ipv4_number": 1,
 	}
 	exitStatus, err := client.CreateQemuVm(params)
         if err != nil {
