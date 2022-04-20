@@ -90,16 +90,17 @@ func NewVmRef(vmId int) (vmr *VmRef) {
 }
 
 func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error) {
-        resp, err := c.GetVmList()
-        vms := resp["list"].([]interface{})
-        for vmii := range vms {
-                vm := vms[vmii].(map[string]interface{})
-		if int(vm["id"].(float64)) == vmr.vmId {
-                        vmInfo = vm
-                        return
-                }
-        }
-        return nil, fmt.Errorf("vm '%d' not found", vmr.vmId)
+	var vmlist map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/host?where=id+EQ+%v", vmr.vmId), &vmlist, 3)
+	if err != nil {
+		return nil, err
+	}
+	if vmlist["list"] == nil {
+		return nil, fmt.Errorf("can't find vm id %v", vmr.vmId)
+	}
+	vms := vmlist["list"].([]interface{})
+	vmInfo = vms[0].(map[string]interface{})
+        return
 }
 
 func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
