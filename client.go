@@ -121,7 +121,7 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
         return
 }
 
-func (c *Client) CreateQemuVm(vmParams map[string]interface{}) (vmid int, err error) {
+func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         var data map[string]interface{}
         _, err = c.session.PostJSON("/host", nil, nil, &vmParams, &data)
         if err != nil {

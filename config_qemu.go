@@ -40,25 +40,25 @@ type ConfigQemu struct {
 	Os		OsConfig    `json:"os"`
 	IPv4		[]Ipv4Config	`json:"ip4"`
 }
+type ConfigNewQemu struct {
+	Name            string      `json:"name"`
+	Description     string      `json:"comment"`
+	QemuCores       int         `json:"cpu_number"`
+	Memory          int         `json:"ram_mib"`
+	QemuDisks       int	    `json:"hdd_mib"`
+	Cluster		int	    `json:"cluster"`
+	Account		int	    `json:"account"`
+	Domain		string	    `json:"domain"`
+	Os		int         `json:"os"`
+	IPv4		int	    `json:"ipv4_number"`
+	Password	string	    `json:"password"`
+}
 
 // CreateVm - Tell VMmanager 6 API to make the VM
-func (config ConfigQemu) CreateVm(client *Client) (vmid int, err error) {
-	params := map[string]interface{}{
-		"name": config.Name,
-		"comment": config.Description,
-		"ram_mib": config.Memory,
-		"hdd_mib": config.QemuDisks,
-		"cpu_number": config.QemuCores,
-		"cluster": 1,
-		"account": 3,
-		"domain": "fuck.me",
-		"password": "fuckingfuck",
-		"os": 1,
-		"ipv4_number": 1,
-	}
-	vmid, err = client.CreateQemuVm(params)
+func (config ConfigNewQemu) CreateVm(client *Client) (vmid int, err error) {
+	vmid, err = client.CreateQemuVm(config)
 	if err != nil {
-                return 0, fmt.Errorf("error creating VM: %v (params: %v)", err, params)
+                return 0, fmt.Errorf("error creating VM: %v (params: %v)", err, config)
         }
 
 	return
