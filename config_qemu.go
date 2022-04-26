@@ -2,16 +2,43 @@ package vmmanager6
 
 import (
 	"fmt"
+	"encoding/json"
+//	"log"
 )
 
+type ConfigDisk struct {
+	Size		int	    `json:"disk_mib"`
+	DiskId		int	    `json:"id"`
+}
+type ClusterConfig struct {
+	Id		int	    `json:"id"`
+	DatacenterType  string	    `json:"datacenter_type"`
+	Name		string	    `json:"name"`
+	Type		string	    `json:"virtualization_type"`
+}
+type AccountConfig struct {
+	Email		string	    `json:"email"`
+	AccountId	int	    `json:"id"`
+}
+type OsConfig struct {
+	Id		int	    `json:"id"`
+}
+type Ipv4Config struct {
+	Interface	string	    `json:"interface"`
+	Ip		string	    `json:"ip"`
+}
 // ConfigQemu - VMmanager6 API QEMU options
 type ConfigQemu struct {
-        VmID            int         `json:"id"`
 	Name            string      `json:"name"`
 	Description     string      `json:"comment"`
 	QemuCores       int         `json:"cpu_number"`
 	Memory          int         `json:"ram_mib"`
-	QemuDisks       int         `json:"disk_mib"`
+	QemuDisks       ConfigDisk  `json:"disk"`
+	Cluster		ClusterConfig	`json:"cluster"`
+	Account		AccountConfig	`json:"account"`
+	Domain		string	    `json:"domain"`
+	Os		OsConfig    `json:"os"`
+	IPv4		[]Ipv4Config	`json:"ip4"`
 }
 
 // CreateVm - Tell VMmanager 6 API to make the VM
@@ -40,14 +67,7 @@ func (config ConfigQemu) CreateVm(client *Client) (vmid int, err error) {
 func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err error) {
         var vmConfig map[string]interface{}
 	vmConfig, err = client.GetVmInfo(vmr)
-	disk_size := vmConfig["disk"].(map[string]interface{})
-	config = &ConfigQemu{
-		VmID:	vmr.vmId,
-		Description: vmConfig["comment"].(string),
-		Name: vmConfig["name"].(string),
-		QemuCores: int(vmConfig["cpu_number"].(float64)),
-		Memory: int(vmConfig["ram_mib"].(float64)),
-		QemuDisks: int(disk_size["disk_mib"].(float64)),
-	}
+	j, err := json.Marshal(vmConfig)
+	err = json.Unmarshal(j, &config)
 	return
 }
