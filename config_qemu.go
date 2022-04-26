@@ -40,13 +40,14 @@ func (config ConfigQemu) CreateVm(client *Client) (vmid int, err error) {
 func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err error) {
         var vmConfig map[string]interface{}
 	vmConfig, err = client.GetVmInfo(vmr)
+	disk_size := vmConfig["disk"].(map[string]interface{})
 	config = &ConfigQemu{
 		VmID:	vmr.vmId,
 		Description: vmConfig["comment"].(string),
 		Name: vmConfig["name"].(string),
-		QemuCores: vmConfig["cpu_number"].(int),
-		Memory: vmConfig["ram_mib"].(int),
-		QemuDisks: vmConfig["disk_mib"].(int),
+		QemuCores: int(vmConfig["cpu_number"].(float64)),
+		Memory: int(vmConfig["ram_mib"].(float64)),
+		QemuDisks: int(disk_size["disk_mib"].(float64)),
 	}
 	return
 }
