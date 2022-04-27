@@ -74,6 +74,7 @@ func (s *Session) NewRequest(method, url string, headers *http.Header, body io.R
 	}
 	if s.AuthToken != "" {
 		req.Header.Add("x-xsrf-token", s.AuthToken)
+		req.Header.Add("Cookie", fmt.Sprintf("ses6=%s", s.AuthToken))
 	}
 	return
 }
@@ -261,7 +262,7 @@ func (s *Session) Login(username string, password string) (err error) {
 	olddebug := *Debug
 	var data map[string]interface{}
 	*Debug = false // don't share passwords in debug log
-	_, err = s.PostJSON("/public/auth", nil , nil, &reqUser, &data)
+	_, err = s.PostJSON("/vm/v3/public/auth", nil , nil, &reqUser, &data)
 	*Debug = olddebug
 	if err != nil {
 		return err

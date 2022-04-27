@@ -79,11 +79,11 @@ func (c *Client) GetJsonRetryable(url string, data *map[string]interface{}, trie
 	return statErr
 }
 func (c *Client) GetNodeList() (list map[string]interface{}, err error) {
-	err = c.GetJsonRetryable("/node", &list, 3)
+	err = c.GetJsonRetryable("/vm/v3/node", &list, 3)
 	return
 }
 func (c *Client) GetVmList() (list map[string]interface{}, err error) {
-	err = c.GetJsonRetryable("/host", &list, 3)
+	err = c.GetJsonRetryable("/vm/v3/host", &list, 3)
 	return
 }
 func (c *Client) DeleteUrl(url string) (err error) {
@@ -97,7 +97,7 @@ func NewVmRef(vmId int) (vmr *VmRef) {
 
 func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error) {
 	var vmlist map[string]interface{}
-	err = c.GetJsonRetryable(fmt.Sprintf("/host?where=id+EQ+%v", vmr.vmId), &vmlist, 3)
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/host?where=id+EQ+%v", vmr.vmId), &vmlist, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
 
 func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         var data map[string]interface{}
-        _, err = c.session.PostJSON("/host", nil, nil, &vmParams, &data)
+        _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &vmParams, &data)
         if err != nil {
                 return 0, err
         }
@@ -136,7 +136,7 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 }
 
 func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
-	url := fmt.Sprintf("/host/%d", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d", vmr.vmId)
         var data map[string]interface{}
 
         _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
@@ -149,8 +149,23 @@ func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
+
+func (c *Client) DeleteNetwork(id string) (err error) {
+	url := fmt.Sprintf("/ip/v3/ipnet/%s", id)
+        var data map[string]interface{}
+
+        _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't delete network %v", id)
+	}
+        return
+}
+
 func (c *Client) UpdateQemuResources(vmr *VmRef, config ResourcesQemu) (err error) {
-	url := fmt.Sprintf("/host/%d/resource", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d/resource", vmr.vmId)
         var data map[string]interface{}
 
         _, err = c.session.PostJSON(url, nil, nil, &config, &data)
@@ -164,7 +179,7 @@ func (c *Client) UpdateQemuResources(vmr *VmRef, config ResourcesQemu) (err erro
         return
 }
 func (c *Client) UpdateQemuDisk(config ConfigDisk) (err error) {
-	url := fmt.Sprintf("/disk/%d", config.Id)
+	url := fmt.Sprintf("/vm/v3/disk/%d", config.Id)
         var data map[string]interface{}
 	size := map[string]int{ "size_mib": config.Size }
         _, err = c.session.PostJSON(url, nil, nil, &size, &data)
@@ -179,7 +194,7 @@ func (c *Client) UpdateQemuDisk(config ConfigDisk) (err error) {
 }
 
 func (c *Client) UpdateQemuConfig(vmr *VmRef, config UpdateConfigQemu) (err error) {
-	url := fmt.Sprintf("/host/%d", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d", vmr.vmId)
         var data map[string]interface{}
 
         _, err = c.session.PostJSON(url, nil, nil, &config, &data)
@@ -193,7 +208,7 @@ func (c *Client) UpdateQemuConfig(vmr *VmRef, config UpdateConfigQemu) (err erro
 }
 
 func (c *Client) ReinstallQemu(vmr *VmRef, config ReinstallOS) (err error) {
-	url := fmt.Sprintf("/host/%d/reinstall", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d/reinstall", vmr.vmId)
         var data map[string]interface{}
 
         _, err = c.session.PostJSON(url, nil, nil, &config, &data)
@@ -208,7 +223,7 @@ func (c *Client) ReinstallQemu(vmr *VmRef, config ReinstallOS) (err error) {
 }
 
 func (c *Client) ChangePassword(vmr *VmRef, password string) (err error) {
-	url := fmt.Sprintf("/host/%d/password", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d/password", vmr.vmId)
         var data map[string]interface{}
 	config := map[string]string{"password": password}
 
@@ -224,7 +239,7 @@ func (c *Client) ChangePassword(vmr *VmRef, password string) (err error) {
 }
 
 func (c *Client) ChangeOwner(vmr *VmRef, owner int) (err error) {
-	url := fmt.Sprintf("/host/%d/account", vmr.vmId)
+	url := fmt.Sprintf("/vm/v3/host/%d/account", vmr.vmId)
         var data map[string]interface{}
 	config := map[string]int{"account": owner}
         _, err = c.session.PostJSON(url, nil, nil, &config, &data)
@@ -239,7 +254,7 @@ func (c *Client) ChangeOwner(vmr *VmRef, owner int) (err error) {
 }
 
 func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) {
-        url := fmt.Sprintf("/task?where=consul_id+EQ+%v", taskUpid)
+        url := fmt.Sprintf("/vm/v3/task?where=consul_id+EQ+%v", taskUpid)
         var data map[string]interface{}
         _, err = c.session.GetJSON(url, nil, nil, &data)
         if err == nil {
@@ -273,4 +288,31 @@ func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (err err
                 waited = waited + TaskStatusCheckInterval
         }
         return fmt.Errorf("Wait timeout for: %v", taskUpid)
+}
+
+func (c *Client) CreateNetwork(netParams ConfigNewNetwork) (vmid string, err error) {
+        var data map[string]interface{}
+        _, err = c.session.PostJSON("/vm/v3/userspace/public/ipnet", nil, nil, &netParams, &data)
+        if err != nil {
+                return "", err
+        }
+	if data == nil {
+		return "", fmt.Errorf("Can't create network with params %v", netParams)
+	}
+	vmid = fmt.Sprint(data["id"].(float64))
+        return
+}
+
+func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err error) {
+	var netlist map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ipnet?where=id+EQ+%v", id), &netlist, 3)
+	if err != nil {
+		return nil, err
+	}
+	if netlist["list"] == nil {
+		return nil, fmt.Errorf("can't find network id %v", id)
+	}
+	nets := netlist["list"].([]interface{})
+	netInfo = nets[0].(map[string]interface{})
+        return
 }
