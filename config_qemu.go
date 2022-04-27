@@ -55,6 +55,7 @@ type ConfigNewQemu struct {
 	Domain		string	    `json:"domain"`
 	Os		int         `json:"os"`
 	IPv4		int	    `json:"ipv4_number"`
+	IPv4Pools	[]int	    `json:"ipv4_pool"`
 	Password	string	    `json:"password"`
 }
 type ReinstallOS struct {

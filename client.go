@@ -319,9 +319,10 @@ func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err 
 
 func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
         var data map[string]interface{}
-        poolParams := map[string]string{
-        	"name": config.Name,
-        	"note": config.Note,
+	// 1. Create pool
+	poolParams := map[string]string{
+		"name": config.Name,
+		"note": config.Note,
         }
         _, err = c.session.PostJSON("/ip/v3/userspace/public/ippool", nil, nil, &poolParams, &data)
         if err != nil {
@@ -331,13 +332,26 @@ func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
 		return "", fmt.Errorf("Can't create Pool with params %v", poolParams)
 	}
 	vmid = fmt.Sprint(data["id"].(float64))
+	// 2. Add ranges to pool
 	for _, Range := range config.Ranges {
 		err = c.CreatePoolRange(vmid, Range)
 		if err != nil {
 	                return "", err
 	        }
-	} 
-	
+	}
+	// 3. Apply pool to cluster
+	poolCluster := map[string][]map[string]int{
+		"clusters": {
+		{
+			"id": 1,
+			"interface": 0,
+		},
+	},
+	}
+        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ippool/%s/cluster", vmid), nil, nil, &poolCluster, nil)
+        if err != nil {
+                return "", err
+        }
         return
 }
 
