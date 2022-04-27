@@ -316,3 +316,69 @@ func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err 
 	netInfo = nets[0].(map[string]interface{})
         return
 }
+
+func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
+        var data map[string]interface{}
+        poolParams := map[string]string{
+        	"Name": config.Name,
+        	"Note": config.Note,
+        }
+        _, err = c.session.PostJSON("/vm/v3/userspace/public/ippool", nil, nil, &poolParams, &data)
+        if err != nil {
+                return "", err
+        }
+	if data == nil {
+		return "", fmt.Errorf("Can't create Pool with params %v", poolParams)
+	}
+	vmid = fmt.Sprint(data["id"].(float64))
+	for Range := range config.Ranges {
+		err = c.CreatePoolRange(vmid, Range)
+		if err != nil {
+	                return "", err
+	        }
+	} 
+	
+        return
+}
+
+func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) {
+        var data map[string]interface{}
+        rangeObject := map[string]string {
+        	"name": rangestring
+        }
+        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ippool/%s", poolId), nil, nil, &rangeObject, &data)
+        if err != nil {
+                return "", err
+        }
+	if data == nil {
+		return "", fmt.Errorf("Can't create Pool with params %v", poolParams)
+	}
+	return
+}
+
+func (c *Client) GetPoolInfo(id string) (ranges map[string]interface{}, err error) {
+	var netlist map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/range?where=ippool+EQ+%v", id), &netlist, 3)
+	if err != nil {
+		return nil, err
+	}
+	if netlist["list"] == nil {
+		return nil, fmt.Errorf("can't find Pool id %v", id)
+	}
+	ranges = netlist["list"].([]interface{})
+	return
+}
+
+func (c *Client) DeletePool(id string) (err error) {
+	url := fmt.Sprintf("/ip/v3/ippool/%s", id)
+        var data map[string]interface{}
+
+        _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't delete Pool %v", id)
+	}
+        return
+}
