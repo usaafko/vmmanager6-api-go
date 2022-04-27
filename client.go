@@ -149,6 +149,94 @@ func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
+func (c *Client) UpdateQemuResources(vmr *VmRef, config ResourcesQemu) (err error) {
+	url := fmt.Sprintf("/host/%d/resource", vmr.vmId)
+        var data map[string]interface{}
+
+        _, err = c.session.PostJSON(url, nil, nil, &config, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't update VM %v resources", vmr.vmId)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
+func (c *Client) UpdateQemuDisk(config ConfigDisk) (err error) {
+	url := fmt.Sprintf("/disk/%d", config.Id)
+        var data map[string]interface{}
+	size := map[string]int{ "size_mib": config.Size }
+        _, err = c.session.PostJSON(url, nil, nil, &size, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't update DISK %v size", config.Id)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
+
+func (c *Client) UpdateQemuConfig(vmr *VmRef, config UpdateConfigQemu) (err error) {
+	url := fmt.Sprintf("/host/%d", vmr.vmId)
+        var data map[string]interface{}
+
+        _, err = c.session.PostJSON(url, nil, nil, &config, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't update VM %v config", vmr.vmId)
+	}
+        return
+}
+
+func (c *Client) ReinstallQemu(vmr *VmRef, config ReinstallOS) (err error) {
+	url := fmt.Sprintf("/host/%d/reinstall", vmr.vmId)
+        var data map[string]interface{}
+
+        _, err = c.session.PostJSON(url, nil, nil, &config, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't reinstall VM %v", vmr.vmId)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
+
+func (c *Client) ChangePassword(vmr *VmRef, password string) (err error) {
+	url := fmt.Sprintf("/host/%d/password", vmr.vmId)
+        var data map[string]interface{}
+	config := map[string]string{"password": password}
+
+        _, err = c.session.PostJSON(url, nil, nil, &config, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't change VM %v password", vmr.vmId)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
+
+func (c *Client) ChangeOwner(vmr *VmRef, owner int) (err error) {
+	url := fmt.Sprintf("/host/%d/account", vmr.vmId)
+        var data map[string]interface{}
+	config := map[string]int{"account": owner}
+        _, err = c.session.PostJSON(url, nil, nil, &config, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't change VM %v owner", vmr.vmId)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
 
 func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) {
         url := fmt.Sprintf("/task?where=consul_id+EQ+%v", taskUpid)

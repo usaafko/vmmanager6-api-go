@@ -8,7 +8,7 @@ import (
 
 type ConfigDisk struct {
 	Size		int	    `json:"disk_mib"`
-	DiskId		int	    `json:"id"`
+	Id		int	    `json:"id"`
 }
 type ClusterConfig struct {
 	Id		int	    `json:"id"`
@@ -18,7 +18,7 @@ type ClusterConfig struct {
 }
 type AccountConfig struct {
 	Email		string	    `json:"email"`
-	AccountId	int	    `json:"id"`
+	Id		int	    `json:"id"`
 }
 type OsConfig struct {
 	Id		int	    `json:"id"`
@@ -40,6 +40,10 @@ type ConfigQemu struct {
 	Os		OsConfig    `json:"os"`
 	IPv4		[]Ipv4Config	`json:"ip4"`
 }
+type UpdateConfigQemu struct {
+	Name            string      `json:"name"`
+	Description     string      `json:"comment"`
+}
 type ConfigNewQemu struct {
 	Name            string      `json:"name"`
 	Description     string      `json:"comment"`
@@ -53,7 +57,15 @@ type ConfigNewQemu struct {
 	IPv4		int	    `json:"ipv4_number"`
 	Password	string	    `json:"password"`
 }
-
+type ReinstallOS struct {
+	Id		int         `json:"os"`
+	Password	string      `json:"password"`
+	EmailMode	string      `json:"send_email_mode"`
+}
+type ResourcesQemu struct {
+    Cores		int	`json:"cpu_number"`
+    Memory		int	`json:"ram_mib"`
+}
 // CreateVm - Tell VMmanager 6 API to make the VM
 func (config ConfigNewQemu) CreateVm(client *Client) (vmid int, err error) {
 	vmid, err = client.CreateQemuVm(config)
@@ -69,5 +81,37 @@ func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err e
 	vmConfig, err = client.GetVmInfo(vmr)
 	j, err := json.Marshal(vmConfig)
 	err = json.Unmarshal(j, &config)
+	return
+}
+
+func (config ResourcesQemu) UpdateResources(vmr *VmRef, client *Client) (err error) {
+	err = client.UpdateQemuResources(vmr, config)
+	if err != nil {
+                return fmt.Errorf("error updating resources of VM id %v: %v (params: %v)", vmr.vmId, err, config)
+	}
+	return
+}
+
+func (config ConfigDisk) UpdateDisk(client *Client) (err error) {
+	err = client.UpdateQemuDisk(config)
+	if err != nil {
+                return fmt.Errorf("error updating disk of VM: %v (params: %v)", err, config)
+	}
+	return
+}
+
+func (config UpdateConfigQemu) UpdateConfig(vmr *VmRef, client *Client) (err error) {
+	err = client.UpdateQemuConfig(vmr, config)
+	if err != nil {
+                return fmt.Errorf("error updating config of VM id %v: %v (params: %v)", vmr.vmId, err, config)
+	}
+	return
+}
+
+func (config ReinstallOS) ReinstallOS(vmr *VmRef, client *Client) (err error) {
+	err = client.ReinstallQemu(vmr, config)
+	if err != nil {
+                return fmt.Errorf("error reinstalling of VM id %v: %v (params: %v)", vmr.vmId, err, config)
+	}
 	return
 }
