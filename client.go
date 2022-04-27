@@ -135,6 +135,21 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         return
 }
 
+func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
+	url := fmt.Sprintf("/host/%d", vmr.vmId)
+        var data map[string]interface{}
+
+        _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't delete VM %v", vmr.vmId)
+	}
+        err = c.WaitForCompletion(data)
+        return
+}
+
 func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) {
         url := fmt.Sprintf("/task?where=consul_id+EQ+%v", taskUpid)
         var data map[string]interface{}

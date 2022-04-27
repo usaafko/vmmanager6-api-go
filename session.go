@@ -232,6 +232,16 @@ func (s *Session) Post(
 	return s.Request("POST", url, params, headers, body)
 }
 
+func (s *Session) DeleteJSON(
+        url string,
+        params *url.Values,
+        headers *http.Header,
+        body interface{},
+        responseContainer interface{},
+) (resp *http.Response, err error) {
+        return s.RequestJSON("DELETE", url, params, headers, body, responseContainer )
+}
+
 func (s *Session) PostJSON(
 	url string,
 	params *url.Values,
