@@ -360,7 +360,7 @@ func (c *Client) UpdatePoolSettings(poolId string, name string, desc string) (er
 		"name": name,
 		"note": desc,
 	}
-        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ippool/%s", poolId), nil, nil, &rangeObject, nil)
+        _, err = c.session.PostJSON(fmt.Sprintf("/ip/v3/ippool/%s", poolId), nil, nil, &rangeObject, nil)
 	return
 }
 
@@ -379,6 +379,13 @@ func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) 
 	return
 }
 
+func (c *Client) DeletePoolRange(rangeId int) (err error) {
+        _, err = c.session.DeleteJSON(fmt.Sprintf("/ip/v3/range/%d", rangeId), nil, nil, nil, nil)
+        if err != nil {
+                return err
+        }
+	return
+}
 func (c *Client) GetPoolInfo(id string) (config map[string]interface{}, err error) {
 	var poolinfo map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ippool/%v", id), &poolinfo, 3)
