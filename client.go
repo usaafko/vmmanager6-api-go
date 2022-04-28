@@ -402,18 +402,29 @@ func (c *Client) GetPoolInfo(id string) (config map[string]interface{}, err erro
 
 func (c *Client) GetPoolIdByName(name string) (id string, err error) {
 	var poolinfo map[string]interface{}
-	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ippool?where=name+CP+\%27%s\%27", name), &poolinfo, 3)
+	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ippool?where=name+CP+%%27%s%%27", name), &poolinfo, 3)
 	if err != nil {
 		return "", err
 	}
-	if len(ranges["list"]) == 0 {
-		return "", fmt.Errorf("can't find pool name %s", name)
+	if len(poolinfo["list"].([]interface{})) == 0 {
+		return "0", nil
 	}
-	id = ranges["list"].([]interface{})[0].(map[string]interace{})['id'].(string)
-	
+	id = fmt.Sprint(poolinfo["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
 	return
 }
 
+func (c *Client) GetNetworkIdByName(name string) (id string, err error) {
+	var poolinfo map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ipnet?where=name+CP+%%27%s%%27", name), &poolinfo, 3)
+	if err != nil {
+		return "", err
+	}
+	if len(poolinfo["list"].([]interface{})) == 0 {
+		return "0", nil
+	}
+	id = fmt.Sprint(poolinfo["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
+	return
+}
 func (c *Client) DeletePool(id string) (err error) {
 	url := fmt.Sprintf("/ip/v3/ippool/%s", id)
         var data map[string]interface{}
