@@ -110,7 +110,7 @@ func (s *Session) Do(req *http.Request) (*http.Response, error) {
 		log.Printf("<<<<<<<<<< RESULT:\n%v", string(dr))
 	}
 
-	if resp.StatusCode == 400 {
+	if resp.StatusCode == 400 || resp.StatusCode == 500 {
 		return resp, fmt.Errorf("%s", string(respBody))
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {

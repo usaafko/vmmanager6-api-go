@@ -355,10 +355,19 @@ func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
         return
 }
 
+func (c *Client) UpdatePoolSettings(poolId string, name string, desc string) (err error) {
+	rangeObject := map[string]string {
+		"name": name,
+		"note": desc,
+	}
+        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ippool/%s", poolId), nil, nil, &rangeObject, nil)
+	return
+}
+
 func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) {
         var data map[string]interface{}
         rangeObject := map[string]string {
-        	"name": rangestring,
+		"name": rangestring,
         }
         _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ippool/%s/range", poolId), nil, nil, &rangeObject, &data)
         if err != nil {
