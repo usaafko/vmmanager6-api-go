@@ -12,6 +12,7 @@ type ConfigNewPool struct {
 	Name		string	    	 `json:"name"`
 	Note		string      	 `json:"note"`
 	Ranges          []string `json: "ipnets"`
+	Cluster		int		`json:"cluster"`
 }
 type ConfigPool struct {
 	Id		string		`json:"id"`

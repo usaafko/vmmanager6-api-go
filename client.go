@@ -309,7 +309,7 @@ func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err 
 	if err != nil {
 		return nil, err
 	}
-	if netlist["list"] == nil {
+	if len(netlist["list"].([]interface{})) == 0 {
 		return nil, fmt.Errorf("can't find network id %v", id)
 	}
 	nets := netlist["list"].([]interface{})
@@ -343,7 +343,7 @@ func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
 	poolCluster := map[string][]map[string]int{
 		"clusters": {
 		{
-			"id": 1,
+			"id": config.Cluster,
 			"interface": 0,
 		},
 	},
