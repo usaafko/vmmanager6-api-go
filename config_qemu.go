@@ -38,7 +38,7 @@ type Ipv4Config struct {
 }
 type RecipeParamsConfig struct {
 	Name		string		`json:"name"`
-	Value		string		`json:"json"`
+	Value		string		`json:"value"`
 }
 type RecipeConfig struct {
 	Recipe 		int 		`json:"recipe"`
