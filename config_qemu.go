@@ -36,6 +36,14 @@ type Ipv4Config struct {
 	Interface	string	    `json:"interface"`
 	Ip		string	    `json:"ip"`
 }
+type RecipeParamsConfig struct {
+	Name		string		`json:"name"`
+	Value		string		`json:"json"`
+}
+type RecipeConfig struct {
+	Recipe 		int 		`json:"recipe"`
+	Params 		[]RecipeParamsConfig	`json:"recipe_params"`
+}
 // ConfigQemu - VMmanager6 API QEMU options
 type ConfigQemu struct {
 	Name            string      `json:"name"`
@@ -54,18 +62,19 @@ type UpdateConfigQemu struct {
 	Description     string      `json:"comment"`
 }
 type ConfigNewQemu struct {
-	Name            string      `json:"name"`
-	Description     string      `json:"comment"`
-	QemuCores       int         `json:"cpu_number"`
-	Memory          int         `json:"ram_mib"`
-	QemuDisks       int	    `json:"hdd_mib"`
-	Cluster		int	    `json:"cluster"`
-	Account		int	    `json:"account"`
-	Domain		string	    `json:"domain"`
-	Os		int         `json:"os"`
-	IPv4		int	    `json:"ipv4_number"`
-	IPv4Pools	[]int	    `json:"ipv4_pool"`
-	Password	string	    `json:"password"`
+	Name            string      	`json:"name"`
+	Description     string      	`json:"comment"`
+	QemuCores       int         	`json:"cpu_number"`
+	Memory          int         	`json:"ram_mib"`
+	QemuDisks       int	    		`json:"hdd_mib"`
+	Cluster			int	    		`json:"cluster"`
+	Account			int	    		`json:"account"`
+	Domain			string	    	`json:"domain"`
+	Os				int         	`json:"os"`
+	IPv4			int	    		`json:"ipv4_number"`
+	IPv4Pools		[]int	    	`json:"ipv4_pool"`
+	Password		string	    	`json:"password"`
+	Recipes 		[]RecipeConfig 	`json:"recipe_list"`
 }
 type ReinstallOS struct {
 	Id		int         `json:"os"`
