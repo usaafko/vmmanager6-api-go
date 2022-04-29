@@ -16,6 +16,11 @@ type ConfigAccount struct {
 	Id		string		`json:"int"`
 	Email		string		`json:"email"`
 }
+type SshKeyConfig struct {
+	Id 		int 	`json:"id"`
+	Name 	string 	`json:"name"`
+	Key 	string	`json:"ssh_pub_key"`
+}
 
 func (config ConfigNewAccount) CreateAccount(client *Client) (vmid string, err error) {
 	vmid, err = client.CreateAccount(config)

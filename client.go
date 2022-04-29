@@ -534,3 +534,27 @@ func (c *Client) ChangeAccountRole(id string, role string) (err error) {
         _, err = c.session.PostJSON(url, nil, nil, &config, nil)
 	return
 }
+// Add ssh public key to account
+func (c *Client) AccountAddSshKey(id string, key SshKeyConfig) (err error) {
+	url := fmt.Sprintf("auth/v3/user/%v/sshkey", id)
+	config := map[string]string{
+		"name": key.Name,
+		"ssh_pub_key": key.Key,
+	}
+        _, err = c.session.PostJSON(url, nil, nil, &config, nil)
+	return
+}
+// Get set of ssh public keys from account 
+func (c *Client) AccountGetSshKeys(id string) (ssh_keys []interface{}, err error) {
+	var data map[string]interface{}
+	url := fmt.Sprintf("auth/v3/user/%v/sshkey", id)
+        err = c.GetJsonRetryable(url, &data, 3)
+	if err != nil {
+		return nil, err
+	}
+	if len(data["list"].([]interface{})) == 0 {
+		return nil, nil
+	}
+	ssh_keys := data["list"].([]interface{})
+	return
+}
