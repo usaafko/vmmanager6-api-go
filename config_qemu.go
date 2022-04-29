@@ -23,6 +23,15 @@ type AccountConfig struct {
 type OsConfig struct {
 	Id		int	    `json:"id"`
 }
+type IpConfig struct {
+	Domain		string		`json:"domain"`
+	Family		int 		`json:"family"`
+	Gateway 	string		`json:"gateway"`
+	Id  		int 		`json:"id"`
+	Addr 		string		`json:"ip_addr"`
+	Mask	 	string		`json:"mask"`
+	NetId		int 		`json:"network"`
+}
 type Ipv4Config struct {
 	Interface	string	    `json:"interface"`
 	Ip		string	    `json:"ip"`
@@ -78,8 +87,16 @@ func (config ConfigNewQemu) CreateVm(client *Client) (vmid int, err error) {
 }
 
 func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err error) {
-        var vmConfig map[string]interface{}
+    var vmConfig map[string]interface{}
 	vmConfig, err = client.GetVmInfo(vmr)
+	j, err := json.Marshal(vmConfig)
+	err = json.Unmarshal(j, &config)
+	return
+}
+
+func NewConfigQemuIpsFromApi(vmr *VmRef, client *Client) (config []*IpConfig, err error) {
+    var vmConfig []map[string]interface{}
+	vmConfig, err = client.GetVmIpsInfo(vmr)
 	j, err := json.Marshal(vmConfig)
 	err = json.Unmarshal(j, &config)
 	return
