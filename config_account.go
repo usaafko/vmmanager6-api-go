@@ -13,7 +13,7 @@ type ConfigNewAccount struct {
 type ConfigAccount struct {
 	State		string		`json:"state"`
 	Role		string		`json:"role"`
-	Id 			int 		`json:"int"`
+	Id		string		`json:"int"`
 	Email		string		`json:"email"`
 }
 

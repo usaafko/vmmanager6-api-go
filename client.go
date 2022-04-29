@@ -450,9 +450,11 @@ func (c *Client) GetAccountInfo(id string) (config map[string]interface{}, err e
 	}
 	var account ConfigAccount
 	account.Id = id
-	account.State = data["state"].(string)
-	account.Role = data["roles"].([]interface)[0].(string)
-	account.Email = data["email"].(string)
+
+	foundAcc := data["list"].([]interface{})[0].(map[string]interface{})
+	account.State = foundAcc["state"].(string)
+	account.Role = foundAcc["roles"].([]interface{})[0].(string)
+	account.Email = foundAcc["email"].(string)
 
 	j, err := json.Marshal(account)
 	err = json.Unmarshal(j, &config)
@@ -524,4 +526,11 @@ func (c *Client) DeleteAccount(id string) (err error) {
 		return fmt.Errorf("Can't delete account %v", id)
 	}
         return
+}
+// Change account role
+func (c *Client) ChangeAccountRole(id string, role string) (err error) {
+	url := fmt.Sprintf("/vm/v3/user/%v", id)
+	config := map[string][]string{"roles": { role }}
+        _, err = c.session.PostJSON(url, nil, nil, &config, nil)
+	return
 }
