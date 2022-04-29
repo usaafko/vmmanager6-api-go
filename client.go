@@ -364,6 +364,14 @@ func (c *Client) UpdatePoolSettings(poolId string, name string, desc string) (er
 	return
 }
 
+func (c *Client) UpdateNetworkDescription(id string, desc string) (err error) {
+	rangeObject := map[string]string {
+		"note": desc,
+	}
+        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ipnet/%s", id), nil, nil, &rangeObject, nil)
+	return
+}
+
 func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) {
         var data map[string]interface{}
         rangeObject := map[string]string {
