@@ -95,11 +95,11 @@ func NewConfigQemuFromApi(vmr *VmRef, client *Client) (config *ConfigQemu, err e
 }
 
 func NewConfigQemuIpsFromApi(vmr *VmRef, client *Client) (config []*IpConfig, err error) {
-    var vmConfig []map[string]interface{}
-	vmConfig, err = client.GetVmIpsInfo(vmr)
-	j, err := json.Marshal(vmConfig)
-	err = json.Unmarshal(j, &config)
-	return
+    var ipConfig []interface{}
+    ipConfig, err = client.GetVmIpsInfo(vmr)
+    j, err := json.Marshal(ipConfig)
+    err = json.Unmarshal(j, &config)
+    return
 }
 
 func (config ResourcesQemu) UpdateResources(vmr *VmRef, client *Client) (err error) {

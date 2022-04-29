@@ -317,6 +317,27 @@ func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err 
         return
 }
 
+
+func (c *Client) GetVmIpsInfo(vmr *VmRef) (ips []interface{}, err error) {
+	var iplist map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/host/%d/ipv4", vmr.vmId), &iplist, 3)
+	if err != nil {
+		return nil, err
+	}
+	if len(iplist["list"].([]interface{})) == 0 {
+		return nil, fmt.Errorf("can't find ips for vm %v", vmr.vmId)
+	}
+	ips = iplist["list"].([]interface{})
+        return
+}
+func (c *Client) UpdatePtr(id int, domain string) (err error) {
+	params := map[string]string {
+		"domain": domain,
+	}
+        _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ip/%d/ptr", id), nil, nil, &params, nil)
+	return
+}
+
 func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
         var data map[string]interface{}
 	// 1. Create pool
