@@ -24,7 +24,7 @@ type Client struct {
 type VmRef struct {
 	vmId	int
 }
-
+// Create client from config
 func NewClient(apiUrl string, hclient *http.Client, tls *tls.Config, taskTimeout int) (client *Client, err error) {
 	var sess *Session
 	sess, err = NewSession(apiUrl, hclient, tls)
@@ -33,39 +33,17 @@ func NewClient(apiUrl string, hclient *http.Client, tls *tls.Config, taskTimeout
 	}
 	return client, err
 }
+// Update token in client config
 func (c *Client) SetAPIToken(token string) {
 	c.session.SetAPIToken(token)
 }
+// Login to VMmanager 6
 func (c *Client) Login(username string, password string) (err error) {
 	c.Username = username
 	c.Password = password
 	return c.session.Login(username, password)
 }
-func (c *Client) GetItemConfigMapStringInterface(url, text string) (map[string]interface{}, error) {
-	data, err := c.GetItemConfig(url, text)
-	if err != nil {return nil, err}
-	return data["data"].(map[string]interface{}), err
-}
-
-func (c *Client) GetItemConfigString(url, text string) (string, error) {
-	data, err := c.GetItemConfig(url, text)
-	if err != nil {return "", err}
-	return data["data"].(string), err
-}
-
-func (c *Client) GetItemConfigInterfaceArray(url, text string) ([]interface{}, error) {
-	data, err := c.GetItemConfig(url, text)
-	if err != nil {return nil, err}
-	return data["data"].([]interface{}), err
-}
-
-func (c *Client) GetItemConfig(url, text string) (config map[string]interface{}, err error) {
-	err = c.GetJsonRetryable(url, &config, 3)
-	if err != nil {return nil, err}
-	if config["data"] == nil {return nil, fmt.Errorf(text + " CONFIG not readable")}
-	return
-}
-
+// Send GET request with retries
 func (c *Client) GetJsonRetryable(url string, data *map[string]interface{}, tries int) error {
 	var statErr error
 	for ii := 0; ii < tries; ii++ {
@@ -78,23 +56,27 @@ func (c *Client) GetJsonRetryable(url string, data *map[string]interface{}, trie
 	}
 	return statErr
 }
+// Get list of VMmanager nodes
 func (c *Client) GetNodeList() (list map[string]interface{}, err error) {
 	err = c.GetJsonRetryable("/vm/v3/node", &list, 3)
 	return
 }
+// Get list of VMmanager vms
 func (c *Client) GetVmList() (list map[string]interface{}, err error) {
 	err = c.GetJsonRetryable("/vm/v3/host", &list, 3)
 	return
 }
+// Delete URL from session
 func (c *Client) DeleteUrl(url string) (err error) {
 	_, err = c.session.Delete(url, nil, nil)
 	return
 }
+// Create VM ref object from id
 func NewVmRef(vmId int) (vmr *VmRef) {
         vmr = &VmRef{vmId: vmId}
         return
 }
-
+// Get VM info
 func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error) {
 	var vmlist map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/host?where=id+EQ+%v", vmr.vmId), &vmlist, 3)
@@ -108,7 +90,7 @@ func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error
 	vmInfo = vms[0].(map[string]interface{})
         return
 }
-
+// Get state of VM
 func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
 	vm, err := c.GetVmInfo(vmr)
         if err != nil {
@@ -120,7 +102,7 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
         vmState = vm["state"].(string)
         return
 }
-
+// Create Qemu VM
 func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         var data map[string]interface{}
         _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &vmParams, &data)
@@ -134,7 +116,7 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 	vmid = int(data["id"].(float64))
         return
 }
-
+// Delete Qemu VM
 func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d", vmr.vmId)
         var data map[string]interface{}
@@ -149,7 +131,7 @@ func (c *Client) DeleteQemuVm(vmr *VmRef) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
-
+// Delete VMmanager's network
 func (c *Client) DeleteNetwork(id string) (err error) {
 	url := fmt.Sprintf("/ip/v3/ipnet/%s", id)
         var data map[string]interface{}
@@ -163,7 +145,7 @@ func (c *Client) DeleteNetwork(id string) (err error) {
 	}
         return
 }
-
+// Update VM's resources
 func (c *Client) UpdateQemuResources(vmr *VmRef, config ResourcesQemu) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d/resource", vmr.vmId)
         var data map[string]interface{}
@@ -178,6 +160,7 @@ func (c *Client) UpdateQemuResources(vmr *VmRef, config ResourcesQemu) (err erro
         err = c.WaitForCompletion(data)
         return
 }
+// Change VM's disk size
 func (c *Client) UpdateQemuDisk(config ConfigDisk) (err error) {
 	url := fmt.Sprintf("/vm/v3/disk/%d", config.Id)
         var data map[string]interface{}
@@ -192,7 +175,7 @@ func (c *Client) UpdateQemuDisk(config ConfigDisk) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
-
+// Update configuration of VM
 func (c *Client) UpdateQemuConfig(vmr *VmRef, config UpdateConfigQemu) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d", vmr.vmId)
         var data map[string]interface{}
@@ -206,7 +189,7 @@ func (c *Client) UpdateQemuConfig(vmr *VmRef, config UpdateConfigQemu) (err erro
 	}
         return
 }
-
+// Reinstall VM to new OS
 func (c *Client) ReinstallQemu(vmr *VmRef, config ReinstallOS) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d/reinstall", vmr.vmId)
         var data map[string]interface{}
@@ -221,7 +204,7 @@ func (c *Client) ReinstallQemu(vmr *VmRef, config ReinstallOS) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
-
+// Change password of VM
 func (c *Client) ChangePassword(vmr *VmRef, password string) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d/password", vmr.vmId)
         var data map[string]interface{}
@@ -237,7 +220,7 @@ func (c *Client) ChangePassword(vmr *VmRef, password string) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
-
+// Change owner of VM
 func (c *Client) ChangeOwner(vmr *VmRef, owner int) (err error) {
 	url := fmt.Sprintf("/vm/v3/host/%d/account", vmr.vmId)
         var data map[string]interface{}
@@ -252,7 +235,7 @@ func (c *Client) ChangeOwner(vmr *VmRef, owner int) (err error) {
         err = c.WaitForCompletion(data)
         return
 }
-
+// Get exit status for task in VMmanager
 func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) {
         url := fmt.Sprintf("/vm/v3/task?where=consul_id+EQ+%v", taskUpid)
         var data map[string]interface{}
@@ -267,7 +250,6 @@ func (c *Client) GetTaskExitstatus(taskUpid int) (exitStatus string, err error) 
         }
         return
 }
-
 // WaitForCompletion - poll the API for task completion
 func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (err error) {
         if taskResponse["error"] != nil {
@@ -289,7 +271,7 @@ func (c *Client) WaitForCompletion(taskResponse map[string]interface{}) (err err
         }
         return fmt.Errorf("Wait timeout for: %v", taskUpid)
 }
-
+// Create new network in VMmanager
 func (c *Client) CreateNetwork(netParams ConfigNewNetwork) (vmid string, err error) {
         var data map[string]interface{}
         _, err = c.session.PostJSON("/vm/v3/userspace/public/ipnet", nil, nil, &netParams, &data)
@@ -302,7 +284,7 @@ func (c *Client) CreateNetwork(netParams ConfigNewNetwork) (vmid string, err err
 	vmid = fmt.Sprint(data["id"].(float64))
         return
 }
-
+// Get information abount network
 func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err error) {
 	var netlist map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ipnet?where=id+EQ+%v", id), &netlist, 3)
@@ -316,8 +298,7 @@ func (c *Client) GetNetworkInfo(id string) (netInfo map[string]interface{}, err 
 	netInfo = nets[0].(map[string]interface{})
         return
 }
-
-
+// Get IP array for VM
 func (c *Client) GetVmIpsInfo(vmr *VmRef) (ips []interface{}, err error) {
 	var iplist map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/host/%d/ipv4", vmr.vmId), &iplist, 3)
@@ -330,6 +311,7 @@ func (c *Client) GetVmIpsInfo(vmr *VmRef) (ips []interface{}, err error) {
 	ips = iplist["list"].([]interface{})
         return
 }
+// Update PTR domain record for given IP's id
 func (c *Client) UpdatePtr(id int, domain string) (err error) {
 	params := map[string]string {
 		"domain": domain,
@@ -337,7 +319,7 @@ func (c *Client) UpdatePtr(id int, domain string) (err error) {
         _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ip/%d/ptr", id), nil, nil, &params, nil)
 	return
 }
-
+// Create pool of IPs in VMmanager
 func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
         var data map[string]interface{}
 	// 1. Create pool
@@ -375,7 +357,21 @@ func (c *Client) CreatePool(config ConfigNewPool) (vmid string, err error) {
         }
         return
 }
-
+// Create account in VMmanager
+func (c *Client) CreateAccount(config ConfigNewAccount) (vmid string, err error) {
+        var data map[string]interface{}
+        _, err = c.session.PostJSON("/vm/v3/account", nil, nil, &config, &data)
+        if err != nil {
+                return "", err
+        }
+	if data == nil {
+		return "", fmt.Errorf("Can't create Account with params %v", config)
+	}
+	vmid = fmt.Sprint(data["id"].(float64))
+	
+        return
+}
+// Update setting for pool
 func (c *Client) UpdatePoolSettings(poolId string, name string, desc string) (err error) {
 	rangeObject := map[string]string {
 		"name": name,
@@ -384,7 +380,7 @@ func (c *Client) UpdatePoolSettings(poolId string, name string, desc string) (er
         _, err = c.session.PostJSON(fmt.Sprintf("/ip/v3/ippool/%s", poolId), nil, nil, &rangeObject, nil)
 	return
 }
-
+// Update network description
 func (c *Client) UpdateNetworkDescription(id string, desc string) (err error) {
 	rangeObject := map[string]string {
 		"note": desc,
@@ -392,7 +388,7 @@ func (c *Client) UpdateNetworkDescription(id string, desc string) (err error) {
         _, err = c.session.PostJSON(fmt.Sprintf("/vm/v3/ipnet/%s", id), nil, nil, &rangeObject, nil)
 	return
 }
-
+// Create new IPs range in Pool
 func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) {
         var data map[string]interface{}
         rangeObject := map[string]string {
@@ -407,7 +403,7 @@ func (c *Client) CreatePoolRange(poolId string, rangestring string) (err error) 
 	}
 	return
 }
-
+// Delete range from pool
 func (c *Client) DeletePoolRange(rangeId int) (err error) {
         _, err = c.session.DeleteJSON(fmt.Sprintf("/ip/v3/range/%d", rangeId), nil, nil, nil, nil)
         if err != nil {
@@ -415,6 +411,7 @@ func (c *Client) DeletePoolRange(rangeId int) (err error) {
         }
 	return
 }
+// Get information about Pool
 func (c *Client) GetPoolInfo(id string) (config map[string]interface{}, err error) {
 	var poolinfo map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ippool/%v", id), &poolinfo, 3)
@@ -444,7 +441,24 @@ func (c *Client) GetPoolInfo(id string) (config map[string]interface{}, err erro
 	err = json.Unmarshal(j, &config)
 	return
 }
+// Get information about Account
+func (c *Client) GetAccountInfo(id string) (config map[string]interface{}, err error) {
+	var data map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/account?where=id+EQ+%v", id), &data, 3)
+	if err != nil {
+		return nil, err
+	}
+	var account ConfigAccount
+	account.Id = id
+	account.State = data["state"].(string)
+	account.Role = data["roles"].([]interface)[0].(string)
+	account.Email = data["email"].(string)
 
+	j, err := json.Marshal(account)
+	err = json.Unmarshal(j, &config)
+	return
+}
+// Find pool by name
 func (c *Client) GetPoolIdByName(name string) (id string, err error) {
 	var poolinfo map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ippool?where=name+CP+%%27%s%%27", name), &poolinfo, 3)
@@ -457,7 +471,7 @@ func (c *Client) GetPoolIdByName(name string) (id string, err error) {
 	id = fmt.Sprint(poolinfo["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
 	return
 }
-
+// Find network by name
 func (c *Client) GetNetworkIdByName(name string) (id string, err error) {
 	var poolinfo map[string]interface{}
 	err = c.GetJsonRetryable(fmt.Sprintf("/ip/v3/ipnet?where=name+CP+%%27%s%%27", name), &poolinfo, 3)
@@ -470,6 +484,20 @@ func (c *Client) GetNetworkIdByName(name string) (id string, err error) {
 	id = fmt.Sprint(poolinfo["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
 	return
 }
+// Find account by email
+func (c *Client) GetAccountIdByEmail(email string) (id string, err error) {
+	var data map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/account?where=email+CP+%%27%s%%27", email), &data, 3)
+	if err != nil {
+		return "", err
+	}
+	if len(data["list"].([]interface{})) == 0 {
+		return "0", nil
+	}
+	id = fmt.Sprint(data["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
+	return
+}
+// Delete IPs pool
 func (c *Client) DeletePool(id string) (err error) {
 	url := fmt.Sprintf("/ip/v3/ippool/%s", id)
         var data map[string]interface{}
@@ -480,6 +508,20 @@ func (c *Client) DeletePool(id string) (err error) {
         }
 	if data == nil {
 		return fmt.Errorf("Can't delete Pool %v", id)
+	}
+        return
+}
+// Delete account
+func (c *Client) DeleteAccount(id string) (err error) {
+	url := fmt.Sprintf("/vm/v3/user/%s", id)
+        var data map[string]interface{}
+
+        _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't delete account %v", id)
 	}
         return
 }
