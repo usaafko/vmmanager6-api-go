@@ -558,3 +558,43 @@ func (c *Client) AccountGetSshKeys(id string) (ssh_keys []interface{}, err error
 	ssh_keys = data["list"].([]interface{})
 	return
 }
+// Add VxLAN network to some account
+func (c *Client) AccountAddVxLAN(config ConfigNewVxLAN) (id string, err error) {
+	var data map[string]interface{}
+        _, err = c.session.PostJSON("/auth/v3/vxlan", nil, nil, &config, &data)
+	if err != nil {
+                return err
+        }
+	if data == nil {
+		return fmt.Errorf("Can't create VxLAN with params %#v", config)
+	}
+	id = fmt.Sprint(data["id"].(float64))
+	return
+}
+// Get information about VxLAN
+func (c *Client) GetVxLANInfo(id string) (config map[string]interface{}, err error) {
+	var data map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/vxlan?where=id+EQ+%v", id), &data, 3)
+	if err != nil {
+		return nil, err
+	}
+	if len(data["list"].([]interface{})) == 0 {
+		return nil, fmt.Errorf("can't find VxLAN id %v", id)
+	}
+	config = data["list"].([]interface{})[0].(map[string]interface{})
+	return
+}
+// Delete VxLAN
+func (c *Client) DeleteVxLAN(id string) (err error) {
+	url := fmt.Sprintf("/vm/v3/vxlan/%s", id)
+        var data map[string]interface{}
+
+        _, err = c.session.DeleteJSON(url, nil, nil, nil, &data)
+        if err != nil {
+                return
+        }
+	if data == nil {
+		return fmt.Errorf("Can't delete VxLAN %v", id)
+	}
+        return
+}
