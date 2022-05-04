@@ -598,3 +598,16 @@ func (c *Client) DeleteVxLAN(id string) (err error) {
 	}
         return
 }
+// Find VxLAN by name and account
+func (c *Client) GetVxLANIdByName(account int, name string) (id string, err error) {
+	var data map[string]interface{}
+	err = c.GetJsonRetryable(fmt.Sprintf("/vm/v3/vxlan?where=(name+CP+%%27%s%%27)+AND+(account.id+EQ+%d)", name, account), &data, 3)
+	if err != nil {
+		return "", err
+	}
+	if len(data["list"].([]interface{})) == 0 {
+		return "0", nil
+	}
+	id = fmt.Sprint(data["list"].([]interface{})[0].(map[string]interface{})["id"].(float64))
+	return
+}
