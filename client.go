@@ -83,7 +83,7 @@ func (c *Client) GetVmInfo(vmr *VmRef) (vmInfo map[string]interface{}, err error
 	if err != nil {
 		return nil, err
 	}
-	if vmlist["list"] == nil {
+	if len(vmlist["list"].([]interface{})) == 0 {
 		return nil, fmt.Errorf("can't find vm id %v", vmr.vmId)
 	}
 	vms := vmlist["list"].([]interface{})
