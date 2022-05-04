@@ -134,9 +134,12 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 			}
 			cis_new = append(cis_new, ci_e)
 		}
-		log.Printf(">>> CIS: %#v", cis_new)
 		config["custom_interfaces"] = cis_new
 	}
+	if config["vxlan"] == nil || len(config["vxlan"].([]interface{})) == 0 {
+		delete(config, "vxlan")
+	}
+	
         _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &config, &data)
         if err != nil {
                 return 0, err
