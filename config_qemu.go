@@ -75,6 +75,7 @@ type ConfigNewQemu struct {
 	IPv4Pools		[]int	    	`json:"ipv4_pool"`
 	Password		string	    	`json:"password"`
 	Recipes 		[]RecipeConfig 	`json:"recipe_list"`
+	CustomInterfaces []interface{}  `json:"custom_interfaces"`
 }
 type ReinstallOS struct {
 	Id		int         `json:"os"`
