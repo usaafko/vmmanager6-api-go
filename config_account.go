@@ -13,7 +13,7 @@ type ConfigNewAccount struct {
 type ConfigAccount struct {
 	State		string		`json:"state"`
 	Role		string		`json:"role"`
-	Id		string		`json:"int"`
+	Id		int		`json:"id"`
 	Email		string		`json:"email"`
 }
 type SshKeyConfig struct {

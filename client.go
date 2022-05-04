@@ -449,9 +449,9 @@ func (c *Client) GetAccountInfo(id string) (config map[string]interface{}, err e
 		return nil, err
 	}
 	var account ConfigAccount
-	account.Id = id
 
 	foundAcc := data["list"].([]interface{})[0].(map[string]interface{})
+	account.Id = int(foundAcc["id"].(float64))
 	account.State = foundAcc["state"].(string)
 	account.Role = foundAcc["roles"].([]interface{})[0].(string)
 	account.Email = foundAcc["email"].(string)
@@ -561,12 +561,12 @@ func (c *Client) AccountGetSshKeys(id string) (ssh_keys []interface{}, err error
 // Add VxLAN network to some account
 func (c *Client) AccountAddVxLAN(config ConfigNewVxLAN) (id string, err error) {
 	var data map[string]interface{}
-        _, err = c.session.PostJSON("/auth/v3/vxlan", nil, nil, &config, &data)
+        _, err = c.session.PostJSON("/vm/v3/vxlan", nil, nil, &config, &data)
 	if err != nil {
-                return err
+                return "", err
         }
 	if data == nil {
-		return fmt.Errorf("Can't create VxLAN with params %#v", config)
+		return "", fmt.Errorf("Can't create VxLAN with params %#v", config)
 	}
 	id = fmt.Sprint(data["id"].(float64))
 	return

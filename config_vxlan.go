@@ -37,7 +37,7 @@ func (config ConfigNewVxLAN) CreateVxLAN(client *Client) (vmid string, err error
 }
 
 func NewConfigVxLANFromApi(id string, client *Client) (config *ConfigVxLAN, err error) {
-	api_config, err = client.GetVxLANInfo(id)
+	api_config, err := client.GetVxLANInfo(id)
 	j, err := json.Marshal(api_config)
 	err = json.Unmarshal(j, &config)
 	return
