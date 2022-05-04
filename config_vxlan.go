@@ -6,6 +6,7 @@ import (
 )
 
 type VxLANipnets struct {
+	Id	int	`json:"id"`
 	Name	string	`json:"name"`
 	Gateway string  `json:"gateway"`
 }
