@@ -105,7 +105,19 @@ func (c *Client) GetVmState(vmr *VmRef) (vmState string, err error) {
 // Create Qemu VM
 func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         var data map[string]interface{}
-        _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &vmParams, &data)
+	var config map[string]interface{}
+        config_json, _ := json.Marshal(vmParams)
+        err = json.Unmarshal(config_json, &config)
+        if config["ipv4_number"] == 0 {
+		delete(config, "ipv4_number")
+	}
+	if config["ipv4_pool"] == nil {
+		delete(config, "ipv4_pool")
+	}
+	if config["recipe_list"] == nil {
+		delete(config, "recipe_list")
+	}
+        _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &config, &data)
         if err != nil {
                 return 0, err
         }
