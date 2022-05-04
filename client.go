@@ -108,7 +108,8 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 	var config map[string]interface{}
         config_json, _ := json.Marshal(vmParams)
         err = json.Unmarshal(config_json, &config)
-        if config["ipv4_number"] == 0 {
+	log.Printf(">>> JSON %#v", config)
+        if config["ipv4_number"].(float64) == 0 {
 		delete(config, "ipv4_number")
 	}
 	if config["ipv4_pool"] == nil {
@@ -116,6 +117,25 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 	}
 	if config["recipe_list"] == nil {
 		delete(config, "recipe_list")
+	}
+	if config["custom_interfaces"] == nil || len(config["custom_interfaces"].([]interface{})) == 0 {
+		delete(config, "custom_interfaces")
+	}else{
+		cis := config["custom_interfaces"].([]interface{})
+		var cis_new []interface{}
+		for _, ci := range cis {
+			ci_e := ci.(map[string]interface{})
+			if ci_e["ip_name"].(string) != "" {
+				delete(ci_e, "ippool")
+			}else{
+				if ci_e["ippool"].(float64) > 0 {
+					delete(ci_e, "ip_name")
+				}
+			}
+			cis_new = append(cis_new, ci_e)
+		}
+		log.Printf(">>> CIS: %#v", cis_new)
+		config["custom_interfaces"] = cis_new
 	}
         _, err = c.session.PostJSON("/vm/v3/host", nil, nil, &config, &data)
         if err != nil {
@@ -461,7 +481,9 @@ func (c *Client) GetAccountInfo(id string) (config map[string]interface{}, err e
 		return nil, err
 	}
 	var account ConfigAccount
-
+	if len(data["list"].([]interface{})) == 0 {
+		return nil, fmt.Errorf("can't find user with id %v", id)
+	}
 	foundAcc := data["list"].([]interface{})[0].(map[string]interface{})
 	account.Id = int(foundAcc["id"].(float64))
 	account.State = foundAcc["state"].(string)
