@@ -74,6 +74,7 @@ type ConfigNewQemu struct {
 	IPv4			int	    		`json:"ipv4_number"`
 	IPv4Pools		[]int	    	`json:"ipv4_pool"`
 	Password		string	    	`json:"password"`
+	CpuMode			string		`json:"cpu_mode"`
 	Recipes 		[]RecipeConfig 	`json:"recipe_list"`
 	CustomInterfaces []interface{}  `json:"custom_interfaces"`
 	Vxlans			[]interface{}   `json:"vxlan"`
@@ -86,6 +87,7 @@ type ReinstallOS struct {
 type ResourcesQemu struct {
     Cores		int	`json:"cpu_number"`
     Memory		int	`json:"ram_mib"`
+    CpuMode		string  `json:"cpu_mode"`
 }
 // CreateVm - Tell VMmanager 6 API to make the VM
 func (config ConfigNewQemu) CreateVm(client *Client) (vmid int, err error) {
