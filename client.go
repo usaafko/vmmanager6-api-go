@@ -109,11 +109,13 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         config_json, _ := json.Marshal(vmParams)
         err = json.Unmarshal(config_json, &config)
 	log.Printf(">>> JSON %#v", config)
-	if config["preset"].(int) > 0 {
+	if config["preset"].(float64) > 0 {
 		delete(config, "cpu_number")
 		delete(config, "ram_mib")
 		delete(config, "hdd_mib")
 		delete(config, "cpu_mode")
+	}else{
+		delete(config, "preset")
 	}
         if config["ipv4_number"].(float64) == 0 {
 		delete(config, "ipv4_number")
