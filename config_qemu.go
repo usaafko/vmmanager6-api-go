@@ -78,6 +78,7 @@ type ConfigNewQemu struct {
 	Recipes 		[]RecipeConfig 	`json:"recipe_list"`
 	CustomInterfaces []interface{}  `json:"custom_interfaces"`
 	Vxlans			[]interface{}   `json:"vxlan"`
+	Preset		int	`json:"preset"`
 }
 type ReinstallOS struct {
 	Id		int         `json:"os"`
