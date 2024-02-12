@@ -60,6 +60,7 @@ type ConfigQemu struct {
 	Account		AccountConfig	`json:"account"`
 	Domain		string	    `json:"domain"`
 	Os		OsConfig    `json:"os"`
+	Anti_spoofing		bool	`json:"anti_spoofing"`
 	IPv4		[]Ipv4Config	`json:"ip4"`
 }
 type UpdateConfigQemu struct {
@@ -77,6 +78,7 @@ type ConfigNewQemu struct {
 	Node			int				`json:"node"`
 	Domain			string	    	`json:"domain"`
 	Os				int         	`json:"os"`
+	Anti_spoofing		bool	`json:"anti_spoofing"`
 	IPv4			int	    		`json:"ipv4_number"`
 	IPv4Pools		[]int	    	`json:"ipv4_pool"`
 	Password		string	    	`json:"password"`
