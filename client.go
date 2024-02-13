@@ -109,6 +109,9 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
         config_json, _ := json.Marshal(vmParams)
         err = json.Unmarshal(config_json, &config)
 	log.Printf(">>> JSON %#v", config)
+	if config["node"].(float64) == 0 {
+		delete(config, "node")
+	}
 	if config["preset"].(float64) > 0 {
 		delete(config, "cpu_number")
 		delete(config, "ram_mib")
@@ -117,7 +120,7 @@ func (c *Client) CreateQemuVm(vmParams ConfigNewQemu) (vmid int, err error) {
 	}else{
 		delete(config, "preset")
 	}
-        if config["ipv4_number"].(float64) == 0 {
+    if config["ipv4_number"].(float64) == 0 {
 		delete(config, "ipv4_number")
 	}
 	if config["ipv4_pool"] == nil {
