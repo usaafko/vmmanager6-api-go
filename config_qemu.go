@@ -16,6 +16,10 @@ type ClusterConfig struct {
 	Name		string	    `json:"name"`
 	Type		string	    `json:"virtualization_type"`
 }
+type NodeConfig struct {
+	Id		int	    `json:"id"`
+	Name		string	    `json:"name"`
+}
 type AccountConfig struct {
 	Email		string	    `json:"email"`
 	Id		int	    `json:"id"`
@@ -52,9 +56,11 @@ type ConfigQemu struct {
 	Memory          int         `json:"ram_mib"`
 	QemuDisks       ConfigDisk  `json:"disk"`
 	Cluster		ClusterConfig	`json:"cluster"`
+	Node		NodeConfig		`json:"node"`
 	Account		AccountConfig	`json:"account"`
 	Domain		string	    `json:"domain"`
 	Os		OsConfig    `json:"os"`
+	Anti_spoofing		bool	`json:"anti_spoofing"`
 	IPv4		[]Ipv4Config	`json:"ip4"`
 }
 type UpdateConfigQemu struct {
@@ -69,8 +75,10 @@ type ConfigNewQemu struct {
 	QemuDisks       int	    		`json:"hdd_mib"`
 	Cluster			int	    		`json:"cluster"`
 	Account			int	    		`json:"account"`
+	Node			int				`json:"node"`
 	Domain			string	    	`json:"domain"`
 	Os				int         	`json:"os"`
+	Anti_spoofing		bool	`json:"anti_spoofing"`
 	IPv4			int	    		`json:"ipv4_number"`
 	IPv4Pools		[]int	    	`json:"ipv4_pool"`
 	Password		string	    	`json:"password"`
