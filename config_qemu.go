@@ -7,25 +7,30 @@ import (
 )
 
 type ConfigDisk struct {
-	Size		int	    `json:"disk_mib"`
-	Id		int	    `json:"id"`
+	Size		int	    	`json:"disk_mib"`
+	Id			int	    	`json:"id"`
+}
+type ConfigSecondaryDisk struct {
+	Size		int	    	`json:"size_mib"`
+	BootOrder	int	    	`json:"boot_order"`
+	Tags		[]int		`json:"tags"`
 }
 type ClusterConfig struct {
-	Id		int	    `json:"id"`
-	DatacenterType  string	    `json:"datacenter_type"`
+	Id			int	    	`json:"id"`
+	DatacenterType  string	`json:"datacenter_type"`
 	Name		string	    `json:"name"`
 	Type		string	    `json:"virtualization_type"`
 }
 type NodeConfig struct {
-	Id		int	    `json:"id"`
+	Id			int	    	`json:"id"`
 	Name		string	    `json:"name"`
 }
 type AccountConfig struct {
 	Email		string	    `json:"email"`
-	Id		int	    `json:"id"`
+	Id			int	    	`json:"id"`
 }
 type OsConfig struct {
-	Id		int	    `json:"id"`
+	Id			int	    	`json:"id"`
 }
 type IpConfig struct {
 	Domain		string		`json:"domain"`
@@ -38,7 +43,7 @@ type IpConfig struct {
 }
 type Ipv4Config struct {
 	Interface	string	    `json:"interface"`
-	Ip		string	    `json:"ip"`
+	Ip			string	    `json:"ip"`
 }
 type RecipeParamsConfig struct {
 	Name		string		`json:"name"`
@@ -50,17 +55,17 @@ type RecipeConfig struct {
 }
 // ConfigQemu - VMmanager6 API QEMU options
 type ConfigQemu struct {
-	Name            string      `json:"name"`
-	Description     string      `json:"comment"`
-	QemuCores       int         `json:"cpu_number"`
-	Memory          int         `json:"ram_mib"`
-	QemuDisks       ConfigDisk  `json:"disk"`
+	Name        string      	`json:"name"`
+	Description string      	`json:"comment"`
+	QemuCores   int         	`json:"cpu_number"`
+	Memory      int         	`json:"ram_mib"`
+	QemuDisks   ConfigDisk  	`json:"disk"`
 	Cluster		ClusterConfig	`json:"cluster"`
 	Node		NodeConfig		`json:"node"`
 	Account		AccountConfig	`json:"account"`
-	Domain		string	    `json:"domain"`
-	Os		OsConfig    `json:"os"`
-	Anti_spoofing		bool	`json:"anti_spoofing"`
+	Domain		string	    	`json:"domain"`
+	Os			OsConfig    	`json:"os"`
+	Anti_spoofing	bool		`json:"anti_spoofing"`
 	IPv4		[]Ipv4Config	`json:"ip4"`
 }
 type UpdateConfigQemu struct {
@@ -73,23 +78,24 @@ type ConfigNewQemu struct {
 	QemuCores       int         	`json:"cpu_number"`
 	Memory          int         	`json:"ram_mib"`
 	QemuDisks       int	    		`json:"hdd_mib"`
+	QemuSecondaryDisks       []ConfigSecondaryDisk	`json:"disks"`
 	Cluster			int	    		`json:"cluster"`
 	Account			int	    		`json:"account"`
 	Node			int				`json:"node"`
 	Domain			string	    	`json:"domain"`
 	Os				int         	`json:"os"`
-	Anti_spoofing		bool	`json:"anti_spoofing"`
+	Anti_spoofing	bool			`json:"anti_spoofing"`
 	IPv4			int	    		`json:"ipv4_number"`
 	IPv4Pools		[]int	    	`json:"ipv4_pool"`
 	Password		string	    	`json:"password"`
-	CpuMode			string		`json:"cpu_mode"`
+	CpuMode			string			`json:"cpu_mode"`
 	Recipes 		[]RecipeConfig 	`json:"recipe_list"`
 	CustomInterfaces []interface{}  `json:"custom_interfaces"`
 	Vxlans			[]interface{}   `json:"vxlan"`
-	Preset		int	`json:"preset"`
+	Preset			int				`json:"preset"`
 }
 type ReinstallOS struct {
-	Id		int         `json:"os"`
+	Id			int         `json:"os"`
 	Password	string      `json:"password"`
 	EmailMode	string      `json:"send_email_mode"`
 }
