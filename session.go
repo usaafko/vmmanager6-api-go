@@ -262,7 +262,7 @@ func (s *Session) Login(username string, password string) (err error) {
 	olddebug := *Debug
 	var data map[string]interface{}
 	*Debug = false // don't share passwords in debug log
-	_, err = s.PostJSON("/vm/v3/public/auth", nil , nil, &reqUser, &data)
+	_, err = s.PostJSON("/auth/v4/public/token", nil , nil, &reqUser, &data)
 	*Debug = olddebug
 	if err != nil {
 		return err
