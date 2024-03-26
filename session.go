@@ -274,7 +274,7 @@ func (s *Session) Login(username string, password string) (err error) {
 		if data == nil {
 			return fmt.Errorf("Login error reading response")
 		}
-		if resp.StatusCode != 200 {
+		if resp.StatusCode != 201 {
 			log.Printf("[DEBUG][Login] Sleeping for %d seconds before another login try", ii+1)
 			time.Sleep(time.Duration(ii+1) * time.Second)
 		} else {
@@ -284,6 +284,7 @@ func (s *Session) Login(username string, password string) (err error) {
 		}
 		
 	}
+	*Debug = olddebug
 	return fmt.Errorf("Can't login after 5 tries")
 }
 
