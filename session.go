@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 )
 
 var Debug = new(bool)
@@ -258,20 +259,30 @@ func (s *Session) SetAPIToken(token string) {
 }
 
 func (s *Session) Login(username string, password string) (err error) {
+	var resp *http.Response
 	reqUser := map[string]interface{}{"email": username, "password": password}
 	olddebug := *Debug
 	var data map[string]interface{}
 	*Debug = false // don't share passwords in debug log
-	_, err = s.PostJSON("/auth/v4/public/token", nil , nil, &reqUser, &data)
-	*Debug = olddebug
-	if err != nil {
-		return err
+	for ii := 0; ii < 5; ii++ {
+		resp, err = s.PostJSON("/auth/v4/public/token", nil , nil, &reqUser, &data)
+		if err != nil {
+			return err
+		}
+		if data == nil {
+			return fmt.Errorf("Login error reading response")
+		}
+		if resp.StatusCode != 200 {
+			log.Printf("[DEBUG][Login] Sleeping for %d seconds before another login try", ii+1)
+			time.Sleep(time.Duration(ii+1) * time.Second)
+		} else {
+			*Debug = olddebug
+			s.AuthToken = data["token"].(string)
+			return nil
+		}
+		
 	}
-	if data == nil {
-		return fmt.Errorf("Login error reading response")
-	}
-	s.AuthToken = data["token"].(string)
-	return nil
+	return fmt.Errorf("Can't login after 5 tries")
 }
 
 func ParamsToBody(params map[string]interface{}) (vals url.Values) {
