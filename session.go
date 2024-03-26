@@ -110,7 +110,9 @@ func (s *Session) Do(req *http.Request) (*http.Response, error) {
 		dr, _ := httputil.DumpResponse(resp, true)
 		log.Printf("<<<<<<<<<< RESULT:\n%v", string(dr))
 	}
-
+	if resp.StatusCode == 503 {
+		return resp, nil
+	}
 	if resp.StatusCode == 400 || resp.StatusCode == 500 {
 		return resp, fmt.Errorf("%s", string(respBody))
 	}
